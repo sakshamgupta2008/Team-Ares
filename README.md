@@ -1,18 +1,16 @@
-INDEPENDENT T-TESTS (Ill vs Not Ill Groups)
-======================================================================
                Feature  T-Statistic       P-Value  Cohens_d Significant
                obesity   108.886790  0.000000e+00  1.430791         Yes
                    pgi    85.881544  0.000000e+00  1.243535         Yes
      missed_visits_12m    66.494260  0.000000e+00  0.964357         Yes
- missed_screenings_12m    57.779175  0.000000e+00  0.851353         Yes
-   region_health_index   -48.009258  0.000000e+00 -0.664986         Yes
+     missed_screenings_12m    57.779175  0.000000e+00  0.851353         Yes
+     region_health_index   -48.009258  0.000000e+00 -0.664986         Yes
        chronic_disease    45.150812  0.000000e+00  0.656279         Yes
- days_since_last_visit    45.679434  0.000000e+00  0.625904         Yes
-   followup_delay_days    45.520489  0.000000e+00  0.623719         Yes
+     days_since_last_visit    45.679434  0.000000e+00  0.625904         Yes
+     followup_delay_days    45.520489  0.000000e+00  0.623719         Yes
           hypertension    38.571987  0.000000e+00  0.570995         Yes
               diabetes    35.357764 5.340662e-267  0.525909         Yes
                    age    37.350155 7.790869e-297  0.516653         Yes
             is_Village    10.799796  3.982707e-27  0.146187         Yes
                is_City   -10.603165  3.292341e-26 -0.140880         Yes
     facility_access_km     9.888199  5.183348e-23  0.133853         Yes
-vaccination_up_to_date    -4.378693  1.198978e-05 -0.059718         Yes
+    vaccination_up_to_date    -4.378693  1.198978e-05 -0.059718         Yes
