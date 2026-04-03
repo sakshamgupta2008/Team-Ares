@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-void:    #000000;
+  --bg-deep:    #030609;
+  --bg-panel:   #060d18;
+  --bg-card:    #07111f;
+  --bg-raised:  #0b1828;
+  --border:     #0d2035;
+  --border-mid: #122944;
+
+  /* ── Neon palette ── */
+  --neon-cyan:    #00f5ff;
+  --neon-green:   #00ff9d;
+  --neon-red:     #ff1a3c;
+  --neon-amber:   #ffb700;
+  --neon-purple:  #bf5fff;
+  --neon-blue:    #3d8dff;
+
+  /* ── Glow shadows ── */
+  --glow-cyan:   0 0 16px rgba(0,245,255,0.45), 0 0 40px rgba(0,245,255,0.15);
+  --glow-green:  0 0 16px rgba(0,255,157,0.45), 0 0 40px rgba(0,255,157,0.12);
+  --glow-red:    0 0 16px rgba(255,26,60,0.5),  0 0 40px rgba(255,26,60,0.18);
+  --glow-amber:  0 0 16px rgba(255,183,0,0.45), 0 0 40px rgba(255,183,0,0.12);
+  --glow-purple: 0 0 16px rgba(191,95,255,0.4), 0 0 40px rgba(191,95,255,0.12);
+
+  /* ── Text ── */
+  --text-bright:  #e8f4ff;
+  --text-mid:     #4a7090;
+  --text-dim:     #1a3a5c;
+  --text-nano:    #0d2035;
+
+  /* ── Glassmorphism ── */
+  --glass-bg:     rgba(6, 13, 24, 0.88);
+  --glass-border: rgba(0, 245, 255, 0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%; width: 100%; overflow: hidden;
+}
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg-void);
+  color: var(--text-bright);
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+/* ── Leaflet ─────────────────────────────────────────────── */
+.leaflet-container { background: #000 !important; font-family: 'Syne', sans-serif; }
+.leaflet-control-zoom a {
+  background: var(--bg-card) !important;
+  color: var(--neon-cyan) !important;
+  border-color: var(--border-mid) !important;
+  font-weight: 700;
+}
+.leaflet-control-zoom a:hover { background: var(--bg-raised) !important; }
+.leaflet-control-attribution {
+  background: rgba(0,0,0,0.75) !important;
+  color: var(--text-dim) !important; font-size: 9px !important;
+}
+.leaflet-control-attribution a { color: var(--text-mid) !important; }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 2px; }
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes blink {
+  0%,100% { opacity: 1; } 50% { opacity: 0.15; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes overlayIn {
+  from { opacity: 0; transform: scale(0.95) translateY(18px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes mapFadeIn {
+  from { opacity: 0; transform: scale(1.02); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes dotPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.3; transform: scale(0.65); }
+}
+@keyframes neonPulse {
+  0%,100% { box-shadow: 0 0 6px var(--neon-cyan); }
+  50%      { box-shadow: var(--glow-cyan); }
+}
+@keyframes barFill {
+  from { width: 0%; }
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(0,245,255,0.3); }
+  50%      { box-shadow: 0 0 24px rgba(0,245,255,0.6), 0 0 48px rgba(0,245,255,0.2); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+/* ── Utility ─────────────────────────────────────────────── */
+.map-enter     { animation: mapFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.overlay-enter { animation: overlayIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.slide-up      { animation: slideUp 0.3s ease both; }
+
+/* ── Recharts ────────────────────────────────────────────── */
+.recharts-wrapper { font-family: 'JetBrains Mono', monospace !important; }
+.recharts-cartesian-axis-tick-value { fill: #1a3a5c !important; font-size: 10px !important; }
+.recharts-tooltip-wrapper { outline: none !important; }
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line { stroke: #0d2035 !important; }
