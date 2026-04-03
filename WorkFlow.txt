@@ -1,0 +1,156 @@
+Node output:
+
+Population
+Tests conducted (or tests per 1000)
+% High BP
+% Diabetes
+% Third disease (pick one: obesity / heart risk)
+
+Risk Summary (ML Output)
+Risk Score (0–100)
+Risk Level (Low / Medium / High)
+Ai summarization
+
+Healthcare workers (or per 1000)
+Testing centers
+Coverage ratio (optional but powerful)
+
+Input simulation:
+ Core Inputs (MUST HAVE)
+1. % Increase in Healthcare Workers
+Slider: 0 → 100%
+
+This is your main simulation driver.
+
+2. % Increase in Testing Capacity
+Slider: 0 → 100%
+
+This is VERY important (many teams miss this)
+
+Optional (only if you want to go pro)
+3. Budget Allocation Mode
+“Focus on workers”
+“Focus on testing”
+“Balanced”
+
+You can fake logic behind this.
+
+Output Simulations:
+A. Updated Risk
+New Risk Score
+New Risk Level
+
+ Show change clearly:
+
+“72 → 58 (↓ 19%)”
+
+ B. Impact Metrics (SUPER IMPORTANT)
+
+Show 2–3 of these:
+
+Reduction in high-risk patients
+Increase in coverage ratio
+% more population detected
+
+Ai explanations
+Map update and visualisation like yellow to green....
+
+
+------------------------------------------------------------------------------------------------------------------------
+API using
+Mapbox(or leaflet) for frontend map
+Geojson file --> clickable Nodes (Fake Data)
+
+
+
+
+
+
+
+
+
+
+OM--
+
+🚨 Preventive Gap Features (MOST IMPORTANT 🔥)
+Missed vaccinations count
+Missed screenings (last X months)
+Delay in last hospital visit
+No follow-up after diagnosis
+
+🧠 Step 4: Explainable AI (VERY IMPORTANT FOR JUDGES)
+
+Use:
+
+SHAP values OR feature importance
+
+Show:
+👉 “This patient is high risk BECAUSE:
+
+Missed 3 screenings
+No visit in 6 months”
+
+📊 Step 5: Output (Make it Practical)
+
+Don’t just output prediction — give:
+
+Risk Score (0–100)
+Top reasons (Explain ability)
+Priority ranking (for dashboard)
+
+
+
+🚀 HIGH-IMPACT FEATURES (Add these to WIN)
+1. 🧮 Preventive Gap Index (PGI) — YOUR SIGNATURE FEATURE
+
+A single score that measures how much care is being missed
+
+Example:
+
+Missed screenings
+Missed visits
+Delay in follow-up
+
+👉 Output:
+
+“Village A has PGI = 78 → Critical neglect zone”
+
+🔥 Judges LOVE custom metrics
+
+3. 🧍 Patient Drop-off Detection
+
+Detect patients who:
+
+Started treatment
+Then disappeared
+
+👉 This is real-world gold
+
+4. 📍 Geo Hotspot Mapping
+Highlight risky villages/blocks
+Cluster high-risk regions
+
+👉 Even better if shown on map/dashboard
+
+5. ⚠️ Intervention Recommendation Engine
+
+Don’t stop at prediction:
+
+👉 Suggest actions:
+
+“Send ASHA worker visit”
+“Schedule screening camp”
+“Follow-up call needed”
+
+🔥 THIS wins hackathons
+
+9. 📊 Simulation Mode (VERY UNIQUE)
+
+“What if we intervene?”
+
+👉 Example:
+
+If screening camp added → risk drops by 30%
+
+👉 Judges will go: 🤯
+
