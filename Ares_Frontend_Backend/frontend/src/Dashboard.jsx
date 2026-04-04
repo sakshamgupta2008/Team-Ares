@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import IndiaMap        from "./components/IndiaMap.jsx";
-import MaharashtraMap  from "./components/MaharashtraMap.jsx";
-import DistrictOverlay from "./components/DistrictOverlay.jsx";
+import IndiaMap               from "./components/IndiaMap.jsx";
+import MaharashtraMap         from "./components/MaharashtraMap.jsx";
+import StateDistrictMap       from "./components/StateDistrictMap.jsx";
+import DistrictOverlay        from "./components/DistrictOverlay.jsx";
+import InterventionSimulator  from "./components/InterventionSimulator.jsx";
 
 const C = { low: "#00ff9d", medium: "#ffb700", high: "#ff1a3c", default: "#0d2035" };
 
@@ -16,8 +18,7 @@ function StatCard({ label, value, color, sub }) {
       <div style={{
         fontSize: 19, fontWeight: 800, color,
         fontFamily: "'JetBrains Mono', monospace",
-        textShadow: `0 0 16px ${color}88`,
-        lineHeight: 1,
+        textShadow: `0 0 16px ${color}88`, lineHeight: 1,
       }}>{value}</div>
       <div style={{ fontSize: 9, color: "#1a3a5c", marginTop: 3,
         textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</div>
@@ -26,26 +27,34 @@ function StatCard({ label, value, color, sub }) {
   );
 }
 
-// ─── Breadcrumb ────────────────────────────────────────────────
-function Breadcrumb({ level, onGoCountry }) {
+function Breadcrumb({ level, activeState, onGoCountry, onGoState }) {
+  const STATE_LABELS = {
+    maharashtra: "MAHARASHTRA",
+    "madhya-pradesh": "MADHYA PRADESH",
+    karnataka: "KARNATAKA",
+  };
   return (
     <nav style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10,
       fontFamily: "'JetBrains Mono', monospace", color: "#1a3a5c" }}>
-      <span onClick={level !== "country" ? onGoCountry : undefined}
-        style={{ color: level !== "country" ? "#00f5ff" : "#1a3a5c",
+      <span
+        onClick={level !== "country" ? onGoCountry : undefined}
+        style={{
+          color: level !== "country" ? "#00f5ff" : "#1a3a5c",
           cursor: level !== "country" ? "pointer" : "default",
-          textDecoration: level !== "country" ? "underline dotted" : "none" }}>
-        INDIA
-      </span>
+          textDecoration: level !== "country" ? "underline dotted" : "none",
+        }}>INDIA</span>
       {level !== "country" && (
-        <><span style={{ color: "#0d2035" }}>›</span>
-        <span style={{ color: "#1a3a5c" }}>MAHARASHTRA</span></>
+        <>
+          <span style={{ color: "#0d2035" }}>›</span>
+          <span style={{ color: "#1a3a5c" }}>
+            {STATE_LABELS[activeState] || activeState?.toUpperCase()}
+          </span>
+        </>
       )}
     </nav>
   );
 }
 
-// ─── ML Status Badge ───────────────────────────────────────────
 function MLBadge({ summary }) {
   if (!summary) return null;
   const online = summary.ml_online;
@@ -63,8 +72,7 @@ function MLBadge({ summary }) {
         boxShadow: `0 0 6px ${online ? "#00ff9d" : "#ff1a3c"}`,
         animation: "dotPulse 2s infinite",
       }} />
-      <span style={{ fontSize: 9, color: online ? "#00ff9d" : "#ff1a3c",
-        letterSpacing: "0.12em" }}>
+      <span style={{ fontSize: 9, color: online ? "#00ff9d" : "#ff1a3c", letterSpacing: "0.12em" }}>
         {online ? `ML ONLINE · ${summary.ml_accuracy}% ACC` : "ML OFFLINE"}
       </span>
     </div>
@@ -73,18 +81,21 @@ function MLBadge({ summary }) {
 
 // ─── Main Dashboard ────────────────────────────────────────────
 const Dashboard = () => {
-  const [level,          setLevel]          = useState("country");
-  const [selDistrict,    setSelDistrict]    = useState(null);
-  const [districtData,   setDistrictData]   = useState({});
-  const [summary,        setSummary]        = useState(null);
-  const [hoveredDistrict,setHoveredDistrict]= useState(null);
-  const [detailData,     setDetailData]     = useState(null);
-  const [detailLoading,  setDetailLoading]  = useState(false);
-  const [mapKey,         setMapKey]         = useState(0);
+  // ── ALL HOOKS MUST BE AT THE TOP — no early returns before this block ──
+  const [view,            setView]            = useState("map"); // "map" | "simulator"
+  const [level,           setLevel]           = useState("country"); // "country" | "state"
+  const [activeState,     setActiveState]     = useState("maharashtra");
+  const [selDistrict,     setSelDistrict]     = useState(null);
+  const [districtData,    setDistrictData]    = useState({});
+  const [summary,         setSummary]         = useState(null);
+  const [hoveredDistrict, setHoveredDistrict] = useState(null);
+  const [detailData,      setDetailData]      = useState(null);
+  const [detailLoading,   setDetailLoading]   = useState(false);
+  const [mapKey,          setMapKey]          = useState(0);
 
   // Fetch Maharashtra data when entering state level
   useEffect(() => {
-    if (level !== "state") return;
+    if (level !== "state" || activeState !== "maharashtra") return;
     fetch("http://localhost:5000/districts")
       .then((r) => r.json())
       .then((data) => {
@@ -97,29 +108,48 @@ const Dashboard = () => {
       .then((r) => r.json())
       .then(setSummary)
       .catch(console.error);
-  }, [level]);
+  }, [level, activeState]);
 
-  // Fetch district detail when clicked
+  // Fetch district detail when clicked (only for Maharashtra which has backend data)
   useEffect(() => {
-    if (!selDistrict) { setDetailData(null); return; }
+    if (!selDistrict || activeState !== "maharashtra") {
+      setDetailData(null);
+      return;
+    }
     setDetailLoading(true);
     fetch(`http://localhost:5000/district/${encodeURIComponent(selDistrict)}`)
       .then((r) => r.json())
       .then((d) => { setDetailData(d); setDetailLoading(false); })
       .catch(() => setDetailLoading(false));
-  }, [selDistrict]);
+  }, [selDistrict, activeState]);
 
-  const goState   = useCallback(() => { setMapKey((k) => k + 1); setLevel("state"); }, []);
-  const goCountry = useCallback(() => {
-    setSelDistrict(null); setMapKey((k) => k + 1); setLevel("country");
+  const goState = useCallback((stateKey = "maharashtra") => {
+    setActiveState(stateKey);
+    setSelDistrict(null);
+    setMapKey((k) => k + 1);
+    setLevel("state");
   }, []);
 
-  // District colour map — prefer ML risk if available
+  const goCountry = useCallback(() => {
+    setSelDistrict(null);
+    setDetailData(null);
+    setMapKey((k) => k + 1);
+    setLevel("country");
+  }, []);
+
   const districtColors = {};
   Object.entries(districtData).forEach(([key, val]) => {
     const risk = val.ml_risk || val.risk;
     districtColors[key] = C[risk] || C.default;
   });
+
+  // ── Render simulator full-screen (after all hooks) ────────────────────────
+  if (view === "simulator") {
+    return <InterventionSimulator onBack={() => setView("map")} />;
+  }
+
+  // ── Normal map view ────────────────────────────────────────────────────────
+  const isMaharashtra = activeState === "maharashtra";
 
   return (
     <div style={S.root}>
@@ -128,24 +158,35 @@ const Dashboard = () => {
       {/* ── Header ── */}
       <header style={S.header}>
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <Breadcrumb level={level} onGoCountry={goCountry} />
+          <Breadcrumb
+            level={level}
+            activeState={activeState}
+            onGoCountry={goCountry}
+            onGoState={() => setSelDistrict(null)}
+          />
           <h1 style={S.title}>
-            PREVENTIVE HEALTH <span style={{ color: "#00f5ff", textShadow: "0 0 20px rgba(0,245,255,0.5)" }}>INTELLIGENCE</span>
+            PREVENTIVE HEALTH{" "}
+            <span style={{ color: "#00f5ff", textShadow: "0 0 20px rgba(0,245,255,0.5)" }}>
+              INTELLIGENCE
+            </span>
           </h1>
         </div>
 
-        {level === "state" && summary && (
+        {level === "state" && isMaharashtra && summary && (
           <div style={S.statRow}>
-            <StatCard label="Districts"   value={summary.total}          color="#00f5ff" />
-            <StatCard label="High Risk"   value={summary.high}           color="#ff1a3c" sub="Urgent" />
-            <StatCard label="Medium"      value={summary.medium}         color="#ffb700" />
-            <StatCard label="Avg Gap"     value={`${summary.avgGap}%`}   color="#bf5fff" sub="Expected vs Actual" />
-            <StatCard label="Worst"       value={summary.worstDistrict}  color="#ff4d6a" sub={`Gap: ${summary.worstGap}%`} />
+            <StatCard label="Districts"  value={summary.total}         color="#00f5ff" />
+            <StatCard label="High Risk"  value={summary.high}          color="#ff1a3c" sub="Urgent" />
+            <StatCard label="Medium"     value={summary.medium}        color="#ffb700" />
+            <StatCard label="Avg Gap"    value={`${summary.avgGap}%`}  color="#bf5fff" sub="Expected vs Actual" />
+            <StatCard label="Worst"      value={summary.worstDistrict} color="#ff4d6a" sub={`Gap: ${summary.worstGap}%`} />
           </div>
         )}
 
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginLeft: "auto" }}>
-          {level === "state" && <MLBadge summary={summary} />}
+          {level === "state" && isMaharashtra && <MLBadge summary={summary} />}
+          <button onClick={() => setView("simulator")} style={S.missionBtn}>
+            ◈ MISSION CONTROL
+          </button>
           {level !== "country" && (
             <button style={S.backBtn} onClick={goCountry}>← India</button>
           )}
@@ -156,9 +197,10 @@ const Dashboard = () => {
       <main style={S.main}>
         {level === "country" ? (
           <div key={`c-${mapKey}`} style={{ flex: 1, height: "100%" }} className="map-enter">
-            <IndiaMap onStateClick={(k) => { if (k === "maharashtra") goState(); }} />
+            <IndiaMap onStateClick={goState} />
           </div>
-        ) : (
+        ) : isMaharashtra ? (
+          /* Maharashtra — has full backend data */
           <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
             <div key={`s-${mapKey}`} style={{ flex: 1, height: "100%" }} className="map-enter">
               <MaharashtraMap
@@ -169,10 +211,8 @@ const Dashboard = () => {
                 onDistrictClick={(id) => { setSelDistrict(id); setHoveredDistrict(null); }}
               />
             </div>
-
-            {/* Side panel */}
             <aside style={S.aside}>
-              <HoverPanel district={hoveredDistrict} />
+              <HoverPanel district={hoveredDistrict} onOpenSimulator={() => setView("simulator")} />
               <Legend />
               <div style={{ fontSize: 10, color: "#0d2035", textAlign: "center",
                 fontFamily: "'JetBrains Mono', monospace", padding: "4px 0" }}>
@@ -180,11 +220,19 @@ const Dashboard = () => {
               </div>
             </aside>
           </div>
+        ) : (
+          /* MP / Karnataka — GeoJSON district view with dummy data */
+          <div key={`s-${mapKey}`} style={{ flex: 1, height: "100%" }} className="map-enter">
+            <StateDistrictMap
+              stateKey={activeState}
+              onBack={goCountry}
+            />
+          </div>
         )}
       </main>
 
-      {/* Overlay */}
-      {selDistrict && (
+      {/* District detail overlay (only for Maharashtra) */}
+      {selDistrict && isMaharashtra && (
         <DistrictOverlay
           district={districtData[selDistrict] || null}
           detail={detailData}
@@ -217,9 +265,9 @@ function GaugeBar({ label, value, color }) {
   );
 }
 
-function HoverPanel({ district }) {
-  const d = district?.data;
-  const rc = C[d?.risk] || "#4a7090";
+function HoverPanel({ district, onOpenSimulator }) {
+  const d    = district?.data;
+  const rc   = C[d?.risk]    || "#4a7090";
   const mlRc = d?.ml_risk ? C[d.ml_risk] : null;
 
   return (
@@ -231,18 +279,21 @@ function HoverPanel({ district }) {
     }}>
       {district ? (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between",
+            alignItems: "center", marginBottom: 12 }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#e8f4ff" }}>{district.name}</div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {d?.risk && (
-                <span style={{ background: `${rc}15`, border: `1px solid ${rc}44`, borderRadius: 5,
-                  padding: "2px 8px", color: rc, fontSize: 9, fontWeight: 700, textTransform: "uppercase" }}>
+                <span style={{ background: `${rc}15`, border: `1px solid ${rc}44`,
+                  borderRadius: 5, padding: "2px 8px", color: rc,
+                  fontSize: 9, fontWeight: 700, textTransform: "uppercase" }}>
                   {d.risk}
                 </span>
               )}
               {d?.ml_backed && mlRc && (
-                <span style={{ background: `${mlRc}15`, border: `1px solid ${mlRc}44`, borderRadius: 5,
-                  padding: "2px 8px", color: mlRc, fontSize: 9, fontWeight: 700 }}>
+                <span style={{ background: `${mlRc}15`, border: `1px solid ${mlRc}44`,
+                  borderRadius: 5, padding: "2px 8px", color: mlRc,
+                  fontSize: 9, fontWeight: 700 }}>
                   ML·{d.ml_risk?.toUpperCase()}
                 </span>
               )}
@@ -250,8 +301,8 @@ function HoverPanel({ district }) {
           </div>
           {d ? (
             <>
-              <GaugeBar label="Expected" value={d.expected} color="#3d8dff" />
-              <GaugeBar label="Actual"   value={d.actual}   color="#00f5ff" />
+              <GaugeBar label="Expected"  value={d.expected}     color="#3d8dff" />
+              <GaugeBar label="Actual"    value={d.actual}       color="#00f5ff" />
               {d.ml_risk_pct != null && (
                 <GaugeBar label="ML Risk %" value={d.ml_risk_pct} color={mlRc || "#ffb700"} />
               )}
@@ -259,8 +310,19 @@ function HoverPanel({ district }) {
                 paddingTop: 10, borderTop: "1px solid #0d2035", marginTop: 6 }}>
                 <span style={{ fontSize: 10, color: "#1a3a5c" }}>Coverage Gap</span>
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 15,
-                  fontWeight: 800, color: rc, textShadow: `0 0 12px ${rc}66` }}>−{d.gap}%</span>
+                  fontWeight: 800, color: rc, textShadow: `0 0 12px ${rc}66` }}>
+                  −{d.gap}%
+                </span>
               </div>
+              <button onClick={onOpenSimulator} style={{
+                width: "100%", marginTop: 10, padding: "7px",
+                background: "rgba(0,245,255,0.06)", border: "1px solid rgba(0,245,255,0.25)",
+                borderRadius: 8, color: "#00f5ff", fontSize: 10, fontWeight: 700,
+                cursor: "pointer", fontFamily: "'JetBrains Mono',monospace",
+                letterSpacing: "0.08em",
+              }}>
+                ◈ Simulate Intervention
+              </button>
             </>
           ) : <div style={{ color: "#0d2035", fontSize: 11 }}>No data</div>}
         </>
@@ -276,9 +338,11 @@ function HoverPanel({ district }) {
 
 function Legend() {
   return (
-    <div style={{ background: "#07111f", border: "1px solid #0d2035", borderRadius: 12, padding: "12px 14px" }}>
+    <div style={{ background: "#07111f", border: "1px solid #0d2035",
+      borderRadius: 12, padding: "12px 14px" }}>
       <div style={{ fontSize: 8, color: "#0d2035", textTransform: "uppercase",
-        letterSpacing: "0.12em", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>RISK LEGEND</div>
+        letterSpacing: "0.12em", marginBottom: 10,
+        fontFamily: "'JetBrains Mono', monospace" }}>RISK LEGEND</div>
       {[
         { r: "low",    l: "Low Risk",    s: "Gap ≤ 10%",  c: "#00ff9d" },
         { r: "medium", l: "Medium Risk", s: "Gap 11–20%", c: "#ffb700" },
@@ -299,7 +363,6 @@ function Legend() {
 
 export default Dashboard;
 
-// ── Styles ──────────────────────────────────────────────────────
 const S = {
   root: {
     height: "100vh", width: "100vw", background: "#000",
@@ -331,7 +394,15 @@ const S = {
     borderRadius: 8, padding: "6px 14px",
     color: "#1a3a5c", fontSize: 10, fontWeight: 700,
     cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
-    letterSpacing: "0.08em", transition: "all 0.2s",
+    letterSpacing: "0.08em",
+  },
+  missionBtn: {
+    background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.35)",
+    borderRadius: 8, padding: "7px 16px",
+    color: "#00f5ff", fontSize: 10, fontWeight: 800,
+    cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
+    letterSpacing: "0.1em", boxShadow: "0 0 14px rgba(0,245,255,0.12)",
+    animation: "glowPulse 3s ease infinite",
   },
   main: { flex: 1, overflow: "hidden", display: "flex" },
   aside: {
