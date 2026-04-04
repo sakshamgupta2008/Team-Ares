@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "location": "Maharashtra (All Districts)",
+  "sample_size": 1537,
+  "risk_score": {
+    "percentage": 63.67,
+    "status": "\ud83d\udfe0 HIGH RISK",
+    "classification": "ILL \u26a0\ufe0f",
+    "bar_visual": "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591"
+  },
+  "justification": [
+    {
+      "rank": 1,
+      "feature": "OBESITY",
+      "importance_score": 0.4026,
+      "average_value": 0.658,
+      "standard_deviation": 0.475,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    },
+    {
+      "rank": 2,
+      "feature": "PGI",
+      "importance_score": 0.1934,
+      "average_value": 0.718,
+      "standard_deviation": 0.392,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    },
+    {
+      "rank": 3,
+      "feature": "MISSED_VISITS_12M",
+      "importance_score": 0.1315,
+      "average_value": -0.041,
+      "standard_deviation": 0.982,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    },
+    {
+      "rank": 4,
+      "feature": "MISSED_SCREENINGS_12M",
+      "importance_score": 0.0918,
+      "average_value": -0.052,
+      "standard_deviation": 0.922,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    },
+    {
+      "rank": 5,
+      "feature": "CHRONIC_DISEASE",
+      "importance_score": 0.0374,
+      "average_value": -0.027,
+      "standard_deviation": 0.986,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    }
+  ],
+  "validation": {
+    "model_name": "Random Forest",
+    "model_accuracy": 0.9883,
+    "average_risk": 63.67,
+    "risk_range": {
+      "min": 0.02,
+      "max": 100.0
+    },
+    "risk_variability": 0.427,
+    "confidence": "\ud83d\udfe0 CAUTION - High variation, diverse population"
+  },
+  "recommendations": [
+    "\u26a0\ufe0f SIGNIFICANT CONCERN",
+    "Targeted health programs needed",
+    "Address top risk factors",
+    "Regular monitoring recommended"
+  ]
+}

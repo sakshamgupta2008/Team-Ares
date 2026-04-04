@@ -1,0 +1,37 @@
+{
+  "model_name": "Random Forest",
+  "accuracy": 0.9902083333333334,
+  "significant_features": [
+    "obesity",
+    "pgi",
+    "missed_visits_12m",
+    "missed_screenings_12m",
+    "region_health_index",
+    "chronic_disease",
+    "days_since_last_visit",
+    "followup_delay_days",
+    "hypertension",
+    "diabetes",
+    "age",
+    "is_Village",
+    "is_City",
+    "facility_access_km",
+    "vaccination_up_to_date",
+    "is_Town",
+    "screening_completed"
+  ],
+  "training_date": "2024-04-04",
+  "model_version": "1.1",
+  "categorical_features_encoded": [
+    "age_group",
+    "locality_type",
+    "literacy_status",
+    "income_bracket",
+    "occupation_type"
+  ],
+  "total_features": 17,
+  "removed_features": [
+    "is_Punjab",
+    "is_Jammu and Kashmir"
+  ]
+}

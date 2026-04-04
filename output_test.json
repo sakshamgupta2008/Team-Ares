@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "location": "Maharashtra (All Districts)",
+  "sample_size": 1537,
+  "risk_score": {
+    "percentage": 65.5,
+    "status": "\ud83d\udfe0 HIGH RISK",
+    "classification": "ILL \u26a0\ufe0f",
+    "bar_visual": "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2591\u2591\u2591\u2591"
+  },
+  "justification": [
+    {
+      "rank": 1,
+      "feature": "REGION_HEALTH_INDEX",
+      "importance_score": 0.1234,
+      "average_value": -0.234,
+      "standard_deviation": 0.987,
+      "effect_direction": "\u2191 Higher",
+      "effect_size": "|Cohen's d|"
+    }
+  ],
+  "validation": {
+    "model_name": "Random Forest",
+    "model_accuracy": 0.9902,
+    "average_risk": 65.5,
+    "risk_range": {
+      "min": 45.2,
+      "max": 78.9
+    },
+    "risk_variability": 0.1234,
+    "confidence": "\ud83d\udfe2 HIGH - Low variation in risk scores"
+  },
+  "recommendations": [
+    "\u26a0\ufe0f SIGNIFICANT CONCERN",
+    "Targeted health programs needed",
+    "Address top risk factors",
+    "Regular monitoring recommended"
+  ]
+}
