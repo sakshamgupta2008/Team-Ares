@@ -1,139 +1,145 @@
-import React, { useState, useMemo } from "react";
+/**
+ * LeftPanel.jsx — Disease Trends Tab
+ * Shows prevalence bars + trend sparklines for diabetes, bp, obesity.
+ */
+import React, { useState } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
+import { pctToSolidColor, RISK_COLOR, C } from "../utils/constants.js";
 
-const TABS = [
-  { key: "diabetes", label: "Diabetes",      color: "#00f5ff" },
-  { key: "bp",       label: "Blood Pressure", color: "#ffb700" },
-  { key: "obesity",  label: "Obesity",        color: "#bf5fff" },
-];
+const DISEASE_META = {
+  diabetes: { label: "Diabetes",       icon: "🩸", color: C.red    },
+  bp:       { label: "Hypertension",   icon: "💓", color: C.amber  },
+  obesity:  { label: "Obesity / BMI",  icon: "⚖️", color: C.purple },
+};
 
-const ChartTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, color }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
       background: "#030609", border: "1px solid #0d2035",
-      borderRadius: 8, padding: "10px 14px", backdropFilter: "blur(16px)",
+      borderRadius: 8, padding: "8px 12px", backdropFilter: "blur(12px)",
     }}>
-      <div style={{ fontSize: 10, color: "#4a7090", marginBottom: 5,
-        fontFamily: "'JetBrains Mono',monospace" }}>{label}</div>
-      {payload.map((p) => p.value != null && (
-        <div key={p.dataKey} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: p.color }} />
-          <span style={{ fontSize: 11, color: "#4a7090", textTransform: "capitalize" }}>{p.dataKey}:</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: p.color,
-            fontFamily: "'JetBrains Mono',monospace" }}>{p.value}%</span>
-        </div>
-      ))}
+      <div style={{ fontSize: 10, color: "#4a7090", marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color,
+        fontFamily: "'JetBrains Mono',monospace" }}>
+        {payload[0].value}%
+      </div>
     </div>
   );
 };
 
-const LeftPanel = ({ diseases = {}, onDiseaseChange }) => {
+const LeftPanel = ({ diseases = {} }) => {
   const [active, setActive] = useState("diabetes");
-
-  const handleTab = (key) => { setActive(key); onDiseaseChange?.(key); };
-  const data   = diseases[active];
-  const color  = TABS.find((t) => t.key === active)?.color || "#00f5ff";
-
-  const chartData = useMemo(() => {
-    if (!data) return [];
-    const hist = data.history.map((h) => ({
-      month: h.month, actual: h.actual, expected: h.expected, predicted: null,
-    }));
-    const lastActual = hist[hist.length - 1]?.actual ?? 0;
-    const pred = data.prediction.months.map((m, i) => ({
-      month: m, actual: null, expected: null, predicted: data.prediction.values[i],
-    }));
-    hist[hist.length - 1] = { ...hist[hist.length - 1], predicted: lastActual };
-    return [...hist, ...pred];
-  }, [data]);
-
-  if (!data) return (
-    <div style={{ ...S.root, alignItems: "center", justifyContent: "center" }}>
-      <div style={{ color: "#1a3a5c" }}>Loading…</div>
-    </div>
-  );
+  const meta  = DISEASE_META[active];
+  const data  = diseases[active];
+  const trend = data?.trend || [];
 
   return (
     <div style={S.root}>
-      {/* Disease tabs */}
-      <div style={S.tabs}>
-        {TABS.map(({ key, label, color: tc }) => (
-          <button key={key} onClick={() => handleTab(key)} style={{
-            ...S.tab,
-            background: active === key ? `${tc}10` : "transparent",
-            color:       active === key ? tc : "#1a3a5c",
-            borderColor: active === key ? `${tc}44` : "transparent",
-            boxShadow:   active === key ? `0 0 16px ${tc}18` : "none",
-          }}>{label}</button>
-        ))}
+      {/* Disease selector tabs */}
+      <div style={S.diseaseRow}>
+        {Object.entries(DISEASE_META).map(([key, m]) => {
+          const d = diseases[key];
+          const prev = d?.prevalence ?? "--";
+          const rc   = pctToSolidColor(typeof prev === "number" ? prev : 50);
+          const isA  = active === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setActive(key)}
+              style={{
+                flex: 1, padding: "12px 10px", textAlign: "center",
+                background: isA ? `${m.color}10` : "transparent",
+                border: isA ? `1px solid ${m.color}44` : "1px solid #0d2035",
+                borderRadius: 10, cursor: "pointer", transition: "all 0.2s",
+              }}
+            >
+              <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icon}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: isA ? m.color : C.dim }}>
+                {m.label}
+              </div>
+              {typeof prev === "number" && (
+                <div style={{ fontSize: 14, fontWeight: 800, marginTop: 3,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  color: rc, textShadow: `0 0 10px ${rc}55` }}>
+                  {prev}%
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Label */}
-      <div style={{ fontSize: 10, marginBottom: 10, flexShrink: 0, color: "#1a3a5c",
-        textTransform: "uppercase", letterSpacing: "0.1em" }}>
-        <span style={{ color }}>{data.label || active}</span>
-        <span style={{ marginLeft: 8 }}>6-MONTH HISTORY + FORECAST</span>
-      </div>
-
-      {/* Chart */}
-      <div style={S.chartWrap}>
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 8, right: 14, bottom: 0, left: -22 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#0d2035" strokeOpacity={0.8} />
-            <XAxis dataKey="month"
-              tick={{ fill: "#1a3a5c", fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}
-              axisLine={{ stroke: "#0d2035" }} tickLine={false}
-            />
-            <YAxis domain={[0, 100]}
-              tick={{ fill: "#1a3a5c", fontSize: 10, fontFamily: "'JetBrains Mono',monospace" }}
-              axisLine={false} tickLine={false}
-            />
-            <Tooltip content={<ChartTooltip />} />
-            <ReferenceLine x="Jun" stroke="#122944" strokeDasharray="5 4"
-              label={{ value: "NOW", fill: "#1a3a5c", fontSize: 8 }} />
-
-            {/* Expected — dashed blue */}
-            <Line type="monotone" dataKey="expected" stroke="#3d8dff" strokeWidth={1.5}
-              strokeDasharray="5 3" dot={false} connectNulls={false} name="Expected" />
-
-            {/* Actual — solid neon */}
-            <Line type="monotone" dataKey="actual" stroke={color} strokeWidth={2.5}
-              dot={{ r: 3, fill: color, strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: color, boxShadow: `0 0 8px ${color}` }}
-              connectNulls={false} name="Actual"
-              style={{ filter: `drop-shadow(0 0 4px ${color}88)` }}
-            />
-
-            {/* Forecast — dashed dim */}
-            <Line type="monotone" dataKey="predicted" stroke={color} strokeWidth={2}
-              strokeDasharray="6 4" strokeOpacity={0.45}
-              dot={{ r: 3, fill: color, strokeWidth: 0, opacity: 0.45 }}
-              connectNulls name="Forecast"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Mini summary */}
-      <div style={S.summary}>
-        {[
-          { label: "EXPECTED", c: "#3d8dff",  val: `${data.history[0].expected}% → ${data.history[5].expected}%` },
-          { label: "ACTUAL",   c: color,       val: `${data.history[0].actual}% → ${data.history[5].actual}%` },
-          { label: "FORECAST", c: "#bf5fff",   val: `→ ${data.prediction.values[5]}% by Dec` },
-        ].map(({ label, c, val }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{
-              background: `${c}15`, color: c, fontSize: 8,
-              padding: "2px 6px", borderRadius: 3,
-              fontFamily: "'JetBrains Mono',monospace",
-            }}>{label}</span>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", color: c, fontSize: 12 }}>{val}</span>
+      {/* Chart area */}
+      <div style={S.chartArea}>
+        {trend.length > 0 ? (
+          <>
+            <div style={{ fontSize: 9, color: C.dim, letterSpacing: "0.12em", marginBottom: 10 }}>
+              6-MONTH PREVALENCE TREND — {meta.label.toUpperCase()}
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={trend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id={`grad-${active}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={meta.color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={meta.color} stopOpacity={0.01} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month"
+                  tick={{ fill: C.dim, fontSize: 9, fontFamily: "'JetBrains Mono',monospace" }}
+                  axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fill: C.dim, fontSize: 9, fontFamily: "'JetBrains Mono',monospace" }}
+                  axisLine={false} tickLine={false}
+                  tickFormatter={v => `${v}%`} />
+                <Tooltip content={<CustomTooltip color={meta.color} />} />
+                <Area type="monotone" dataKey="value"
+                  stroke={meta.color} strokeWidth={2}
+                  fill={`url(#grad-${active})`}
+                  dot={{ fill: meta.color, r: 3, strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: meta.color, stroke: "#000", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </>
+        ) : (
+          <div style={S.noData}>
+            <div style={{ fontSize: 24, opacity: 0.3, marginBottom: 8 }}>📊</div>
+            <div style={{ fontSize: 12, color: C.dim }}>Trend data not available</div>
           </div>
-        ))}
+        )}
+      </div>
+
+      {/* Coverage gap bars */}
+      <div style={S.gapSection}>
+        <div style={{ fontSize: 9, color: C.dim, letterSpacing: "0.12em", marginBottom: 10 }}>
+          COVERAGE GAP OVERVIEW
+        </div>
+        {Object.entries(DISEASE_META).map(([key, m]) => {
+          const d   = diseases[key];
+          const gap = d?.gap ?? 0;
+          return (
+            <div key={key} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: "#4a7090" }}>
+                  {m.icon} {m.label}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: m.color,
+                  fontFamily: "'JetBrains Mono',monospace" }}>{gap}%</span>
+              </div>
+              <div style={{ height: 5, background: "#07111f", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%", width: `${gap}%`, background: m.color,
+                  borderRadius: 3, boxShadow: `0 0 6px ${m.color}55`,
+                  transition: "width 0.6s cubic-bezier(0.16,1,0.3,1)",
+                  animation: "barFill 1s ease both",
+                }} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -142,18 +148,24 @@ const LeftPanel = ({ diseases = {}, onDiseaseChange }) => {
 const S = {
   root: {
     height: "100%", display: "flex", flexDirection: "column",
-    padding: "16px", overflow: "hidden",
+    padding: "14px 16px", gap: 14, overflow: "hidden",
   },
-  tabs: { display: "flex", gap: 6, marginBottom: 12, flexShrink: 0 },
-  tab: {
-    border: "1px solid transparent", borderRadius: 8,
-    padding: "6px 14px", fontSize: 12, fontWeight: 700,
-    cursor: "pointer", transition: "all 0.2s",
-    letterSpacing: "0.04em", fontFamily: "'Syne',sans-serif",
+  diseaseRow: {
+    display: "flex", gap: 10, flexShrink: 0,
   },
-  chartWrap: { flex: 1, minHeight: 0 },
-  summary: {
-    display: "flex", gap: 12, marginTop: 10, flexShrink: 0, flexWrap: "wrap",
+  chartArea: {
+    flex: 1, minHeight: 0, flexShrink: 0,
+    background: "#060d18", border: "1px solid #0d2035",
+    borderRadius: 12, padding: "14px",
+    display: "flex", flexDirection: "column",
+  },
+  noData: {
+    flex: 1, display: "flex", flexDirection: "column",
+    alignItems: "center", justifyContent: "center",
+  },
+  gapSection: {
+    background: "#060d18", border: "1px solid #0d2035",
+    borderRadius: 12, padding: "12px 14px", flexShrink: 0,
   },
 };
 
