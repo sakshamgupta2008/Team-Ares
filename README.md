@@ -65,10 +65,72 @@ Om Rai
 We welcome contributors! Improve models, build dashboards, enhance data pipelines, or optimize performance. Fork the repo, raise issues, and submit PRs.
 
 🧰 Tech Stack
-Language: Python
+Language: Python, JavaScript
 ML: Scikit-learn, XGBoost
 Data: Pandas, NumPy
-Visualization: Matplotlib / Plotly
-Backend : 
-Dashboard :
-Deployment :
+Visualization: Matplotlib, Plotly
+Backend: Node.js, Express
+Dashboard: React
+Deployment: Heroku / AWS
+
+## Installation
+
+### Prerequisites
+- Node.js (v14 or higher)
+- Python 3.8+
+- npm
+
+### Clone the Repository
+```bash
+git clone https://github.com/sakshamgupta2008/Team-Ares.git
+cd Team-Ares
+```
+
+### Backend Setup
+```bash
+cd Backend
+npm install
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+```
+
+### ML Service Setup
+Ensure Python dependencies are installed. Required packages include:
+- Flask
+- scikit-learn
+- pandas
+- numpy
+- xgboost
+- matplotlib
+- plotly
+
+Install via pip:
+```bash
+pip install flask scikit-learn pandas numpy xgboost matplotlib plotly
+```
+
+## Usage
+
+### Running the Application
+1. Start the ML Service:
+   ```bash
+   python ML/ml_service.py
+   ```
+
+2. Start the Backend:
+   ```bash
+   cd Backend
+   npm start
+   ```
+
+3. Start the Frontend:
+   ```bash
+   cd frontend
+   npm start
+   ```
+
+Access the application at `http://localhost:3000`.
